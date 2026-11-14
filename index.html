@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHELGARD: NASA Space Mission Design Game | 2026 Space Apps Challenge</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="./main.css">
+  <link rel="stylesheet" href="./components.css">
+  <link rel="stylesheet" href="./simulation.css">
+</head>
+<body>
+
+  <!-- 1. TOP APP BAR & BRANDING -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="nasa-logo-badge">
+        <span>🚀 NASA</span>
+        <span>SPACE APPS 2026</span>
+      </div>
+      <div>
+        <h1 class="app-title">ORBITAL ARCHITECT <span>//</span> SPACE MISSION DESIGN GAME</h1>
+        <div class="app-subtitle-tag">Systems Engineering & Mission Operations Simulator</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-toggle-audio" class="btn-header">🔊 Audio: Active</button>
+      <button id="btn-export-mission" class="btn-header">💾 Export Mission (JSON)</button>
+      <label class="btn-header" style="cursor: pointer;">
+        📂 Import Mission
+        <input type="file" id="input-import-mission" accept=".json" style="display: none;">
+      </label>
+    </div>
+  </header>
+
+  <!-- 2. REAL-TIME RESOURCE TELEMETRY HUD BAR -->
+  <section class="resource-hud-bar">
+    <!-- Mass Meter -->
+    <div class="hud-tile">
+      <div class="hud-title-bar">
+        <span>Mass Budget</span>
+        <span>⚖️ Total / LV Cap</span>
+      </div>
+      <div id="hud-mass-val" class="hud-main-val">-- kg / -- kg</div>
+      <div id="hud-mass-sub" class="hud-sub-val">Dry: -- | Fuel: --</div>
+      <div class="meter-track">
+        <div id="hud-mass-bar" class="meter-fill meter-healthy" style="width: 50%;"></div>
+      </div>
+    </div>
+
+    <!-- Power Meter -->
+    <div class="hud-tile">
+      <div class="hud-title-bar">
+        <span>Power Balance</span>
+        <span>⚡ Generation / Load</span>
+      </div>
+      <div id="hud-power-val" class="hud-main-val">-- W / -- W</div>
+      <div id="hud-power-sub" class="hud-sub-val">Eclipse: -- | DoD: --%</div>
+      <div class="meter-track">
+        <div id="hud-power-bar" class="meter-fill meter-healthy" style="width: 40%;"></div>
+      </div>
+    </div>
+
+    <!-- Financial Budget Meter -->
+    <div class="hud-tile">
+      <div class="hud-title-bar">
+        <span>Financial Budget</span>
+        <span>💰 Total / Cap</span>
+      </div>
+      <div id="hud-budget-val" class="hud-main-val">$0M / $0M</div>
+      <div id="hud-budget-sub" class="hud-sub-val">Margin: $0M</div>
+      <div class="meter-track">
+        <div id="hud-budget-bar" class="meter-fill meter-healthy" style="width: 60%;"></div>
+      </div>
+    </div>
+
+    <!-- Science Score Meter -->
+    <div class="hud-tile">
+      <div class="hud-title-bar">
+        <span>Science Return</span>
+        <span>🔬 Target Score</span>
+      </div>
+      <div id="hud-science-val" class="hud-main-val">0 / 0 pts</div>
+      <div id="hud-science-sub" class="hud-sub-val">Goal Fulfillment: 0%</div>
+      <div class="meter-track">
+        <div id="hud-science-bar" class="meter-fill meter-healthy" style="width: 30%;"></div>
+      </div>
+    </div>
+
+    <!-- Data Telemetry Meter -->
+    <div class="hud-tile">
+      <div class="hud-title-bar">
+        <span>Telemetry & Comms</span>
+        <span>📡 Downlink Throughput</span>
+      </div>
+      <div id="hud-data-val" class="hud-main-val">-- GB/day</div>
+      <div id="hud-data-sub" class="hud-sub-val">Coverage: --</div>
+    </div>
+  </section>
+
+  <!-- 3. NAVIGATION TAB BAR -->
+  <nav class="nav-tab-bar">
+    <button class="nav-tab-btn active" data-tab="tab-concept">🪐 1. Mission Concept</button>
+    <button class="nav-tab-btn" data-tab="tab-spacecraft">🛠️ 2. Spacecraft Architecture</button>
+    <button class="nav-tab-btn" data-tab="tab-orbit">🚀 3. Orbit & Launch</button>
+    <button class="nav-tab-btn" data-tab="tab-team">👥 4. Team Station (4-Player)</button>
+    <button class="nav-tab-btn" data-tab="tab-simulation">🛰️ 5. Flight Simulation</button>
+    <button class="nav-tab-btn" data-tab="tab-handbook">📖 Engineering Handbook</button>
+  </nav>
+
+  <!-- 4. WORKSPACE TABS -->
+  <main class="app-container">
+
+    <!-- TAB 1: MISSION CONCEPT -->
+    <section id="tab-concept" class="tab-content active">
+      <div class="section-header">
+        <h2 class="section-title">Select Mission Scenario</h2>
+        <p class="section-desc">Choose an authentic NASA exploration profile. Each scenario presents distinct gravitational, thermal, solar, and radiation constraints.</p>
+      </div>
+
+      <div id="scenarios-container" class="scenarios-grid">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: SPACECRAFT ARCHITECTURE -->
+    <section id="tab-spacecraft" class="tab-content">
+      <div class="workbench-split">
+        <!-- Left: Subsystem Selectors -->
+        <div class="workbench-pane">
+          <div class="section-header">
+            <h2 class="section-title">Spacecraft Subsystems & Payload Engineering</h2>
+            <p class="section-desc">Select bus structure, power systems, propulsion, and scientific instruments. Balance mass, power draw, and costs.</p>
+          </div>
+
+          <!-- 1. Bus Structure -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>1. Structural Bus Class</span>
+              <span class="badge badge-meta">Structural Envelope</span>
+            </div>
+            <div id="bus-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- 2. Power Generation -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>2. Power Generation (Solar vs RTG)</span>
+              <span class="badge badge-meta">Inverse-Square Law</span>
+            </div>
+            <div id="power-gen-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- 3. Battery Storage -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>3. Energy Storage (Battery Pack)</span>
+              <span class="badge badge-meta">Eclipse Depth-of-Discharge</span>
+            </div>
+            <div id="battery-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- 4. Scientific Instruments -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>4. Scientific Instrument Suite</span>
+              <span id="instruments-limit-note" class="badge badge-meta">Max payload</span>
+            </div>
+            <div id="instruments-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- 5. Attitude Determination & Control (ADCS) -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>5. Attitude Determination & Control (ADCS)</span>
+              <span class="badge badge-meta">Pointing Accuracy</span>
+            </div>
+            <div id="adcs-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- 6. Communications Transceiver -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>6. Telemetry & Communications Transceiver</span>
+              <span class="badge badge-meta">Frequency Bands</span>
+            </div>
+            <div id="comms-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- 7. Thermal & Radiation Shielding -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>7. Thermal Control & Radiation Vault</span>
+              <span class="badge badge-meta">Environmental Hardening</span>
+            </div>
+            <div id="thermal-options" class="component-options-grid"></div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Spacecraft Schematic Blueprint & Launch Gate -->
+        <div class="workbench-pane sticky-blueprint-sidebar">
+          <div class="sc-name-box">
+            <label for="input-spacecraft-name">Spacecraft Designation:</label>
+            <input type="text" id="input-spacecraft-name" class="input-sc-name" value="Sentinel-Alpha" maxlength="32">
+          </div>
+
+          <div class="schematic-canvas-box">
+            <canvas id="spacecraft-canvas" class="canvas-element" width="400" height="320"></canvas>
+          </div>
+
+          <!-- Subsystem Validation Checklist -->
+          <div class="validation-panel">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 10px;">
+              🛡️ Flight Readiness Systems Verification
+            </h3>
+            <div id="validation-checklist-container">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Launch Button -->
+          <div class="launch-actions-bar">
+            <button id="btn-launch-mission" class="btn-launch btn-launch-blocked" disabled>
+              🚀 INITIATE MISSION LAUNCH
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: ORBIT & LAUNCH -->
+    <section id="tab-orbit" class="tab-content">
+      <div class="workbench-split">
+        <div class="workbench-pane">
+          <div class="section-header">
+            <h2 class="section-title">Launch Vehicle & Trajectory Planning</h2>
+            <p class="section-desc">Select the booster rocket and destination orbit. Ensure wet mass does not exceed the launch vehicle's payload capacity.</p>
+          </div>
+
+          <!-- Launch Vehicle Options -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>1. Launch Vehicle Booster</span>
+              <span class="badge badge-meta">Lift Capability</span>
+            </div>
+            <div id="lv-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- Propulsion System -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>2. Spacecraft In-Space Propulsion Engine</span>
+              <span class="badge badge-meta">Tsiolkovsky Isp</span>
+            </div>
+            <div id="propulsion-options" class="component-options-grid"></div>
+          </div>
+
+          <!-- Target Orbit Options -->
+          <div class="subsystem-group">
+            <div class="subsystem-title">
+              <span>3. Target Orbit Profile</span>
+              <span class="badge badge-meta">Orbital Period & Eclipse</span>
+            </div>
+            <div id="orbit-options" class="component-options-grid"></div>
+          </div>
+        </div>
+
+        <div class="workbench-pane">
+          <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 12px;">📐 Trajectory & Δv Trade-Offs</h3>
+          <div class="handbook-body" style="font-size: 0.88rem;">
+            <p><strong>The Rocket Equation in Action:</strong></p>
+            <p>Every kilogram of dry mass added to your payload increases the propellant mass required exponentially based on your target orbit's Delta-V.</p>
+            <div class="handbook-equation">Δv = Isp · 9.80665 · ln(m_wet / m_dry)</div>
+            <p><strong>Launch Vehicle Envelopes:</strong></p>
+            <p>If your spacecraft wet mass exceeds the rocket's payload capacity to the destination, launch is strictly prohibited by NASA Range Safety.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 4-PLAYER TEAM COLLABORATION MODE -->
+    <section id="tab-team" class="tab-content">
+      <div class="section-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 class="section-title">Team Collaboration Workstations (Up to 4 Players)</h2>
+            <p class="section-desc">Assign specific responsibilities across your mission team. Before launch, all specialists must conduct a Flight Readiness Poll.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <label for="team-mode-toggle" style="font-size: 0.85rem; font-weight: 700; cursor: pointer;">Enable 4-Player Team Mode:</label>
+            <input type="checkbox" id="team-mode-toggle" style="width: 18px; height: 18px; cursor: pointer;">
+          </div>
+        </div>
+      </div>
+
+      <div id="team-roles-container" class="team-roles-grid">
+        <!-- 4 Team Stations populated dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 5: FLIGHT SIMULATION -->
+    <section id="tab-simulation" class="tab-content">
+      <div class="simulation-workbench">
+        <!-- Left: 2D Orbital Canvas & Playback Controls -->
+        <div class="sim-visualizer-box">
+          <canvas id="orbit-canvas" class="sim-canvas" width="800" height="520"></canvas>
+
+          <div class="sim-controls-bar">
+            <div class="sim-playback-group">
+              <button id="btn-sim-play-pause" class="btn-sim-action">⏸ Pause Flight</button>
+              <div class="sim-speed-selector">
+                <button class="btn-sim-speed" data-speed="1">1x</button>
+                <button class="btn-sim-speed active" data-speed="5">5x</button>
+                <button class="btn-sim-speed" data-speed="20">20x</button>
+                <button class="btn-sim-speed" data-speed="50">50x</button>
+              </div>
+            </div>
+
+            <div>
+              <button id="btn-sim-abort" class="btn-sim-action btn-sim-abort">⚠️ Abort Mission</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Telemetry Readouts & Flight Event Log -->
+        <div class="sim-telemetry-panel">
+          <div class="telemetry-tile">
+            <div class="telemetry-label">Mission Elapsed Time (MET)</div>
+            <div id="sim-met-val" class="telemetry-value">0.0h (Orbit 1 / 24)</div>
+          </div>
+
+          <div class="telemetry-tile">
+            <div class="telemetry-label">Battery State of Charge</div>
+            <div id="sim-battery-val" class="telemetry-value">100.0%</div>
+            <div class="meter-track">
+              <div id="sim-battery-bar" class="meter-fill meter-healthy" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div class="telemetry-tile">
+            <div class="telemetry-label">Solar Power / Bus Load</div>
+            <div id="sim-power-val" class="telemetry-value">-- W / -- W</div>
+          </div>
+
+          <div class="telemetry-tile">
+            <div class="telemetry-label">SSR Buffer Occupancy</div>
+            <div id="sim-buffer-val" class="telemetry-value">0%</div>
+            <div class="meter-track">
+              <div id="sim-buffer-bar" class="meter-fill meter-healthy" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="telemetry-tile">
+            <div class="telemetry-label">Science Downlinked to Earth</div>
+            <div id="sim-data-val" class="telemetry-value">0.0 GB</div>
+          </div>
+
+          <div class="telemetry-tile">
+            <div class="telemetry-label">Propellant Remaining</div>
+            <div id="sim-propellant-val" class="telemetry-value">-- kg</div>
+          </div>
+
+          <div class="telemetry-tile">
+            <div class="telemetry-label">Spacecraft Bus Health</div>
+            <div id="sim-health-val" class="telemetry-value">100%</div>
+          </div>
+
+          <!-- Event Log -->
+          <div>
+            <div class="telemetry-label" style="margin-bottom: 4px;">Flight Telemetry Log Feed</div>
+            <div id="sim-event-log-container" class="sim-event-feed-box"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: ENGINEERING HANDBOOK -->
+    <section id="tab-handbook" class="tab-content">
+      <div class="section-header">
+        <h2 class="section-title">NASA Spacecraft Engineering Handbook</h2>
+        <p class="section-desc">Learn the core physics and systems engineering principles that govern real-world space exploration missions.</p>
+      </div>
+
+      <div id="handbook-articles-container" class="handbook-grid">
+        <!-- Handbook articles dynamically injected -->
+      </div>
+    </section>
+  </main>
+
+  <!-- 5. ANOMALY MODAL POPUP -->
+  <div id="anomaly-modal" class="modal-overlay">
+    <div class="anomaly-modal-card">
+      <div class="anomaly-header">
+        <h3 id="anomaly-title" class="anomaly-title">⚠️ FLIGHT ANOMALY ALERT</h3>
+      </div>
+      <p id="anomaly-desc" class="anomaly-desc"></p>
+      <div id="anomaly-choices-container" class="anomaly-choices-container"></div>
+    </div>
+  </div>
+
+  <!-- 6. POST-MISSION DEBRIEF & CERTIFICATE MODAL -->
+  <div id="debrief-modal" class="modal-overlay">
+    <div class="debrief-modal-card">
+      <div class="debrief-top-header">
+        <div>
+          <span class="badge badge-meta">NASA MISSION EVALUATION REPORT</span>
+          <h2 style="font-size: 1.5rem; color: #fff; margin-top: 4px;">Post-Flight Engineering Debrief</h2>
+        </div>
+        <div class="grade-display-box">
+          <div id="debrief-grade" class="grade-badge grade-s">S</div>
+          <div>
+            <div id="debrief-grade-label" style="font-weight: 700; color: #fff; font-size: 1.1rem;">Full Mission Success</div>
+            <div id="debrief-total-score" style="font-family: var(--font-mono); color: var(--color-accent); font-weight: 700;">890 / 1000 PTS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score Component Breakdown -->
+      <div class="scorecard-categories-grid">
+        <div class="score-tile">
+          <div class="score-tile-label">Science Return</div>
+          <div id="debrief-science-pts" class="score-tile-val">+0 pts</div>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">Fiscal Management</div>
+          <div id="debrief-budget-pts" class="score-tile-val">+0 pts</div>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">Subsystem Reliability</div>
+          <div id="debrief-eng-pts" class="score-tile-val">+0 pts</div>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">Propellant Reserve</div>
+          <div id="debrief-prop-pts" class="score-tile-val">+0 pts</div>
+        </div>
+      </div>
+
+      <!-- Telemetry Timeline Canvas -->
+      <div class="debrief-chart-box">
+        <div class="telemetry-label" style="margin-bottom: 6px;">Telemetry Profile (Battery State of Charge & Buffer History)</div>
+        <canvas id="debrief-telemetry-chart" class="chart-canvas" width="820" height="180"></canvas>
+      </div>
+
+      <!-- Root Cause Analysis & Lessons Learned -->
+      <div>
+        <h3 style="font-size: 1rem; color: #fff; margin-bottom: 8px;">📋 Engineering Findings & Root-Cause Debrief:</h3>
+        <ul id="debrief-notes-list" class="debrief-notes-list"></ul>
+      </div>
+
+      <!-- Printable NASA Flight Certificate -->
+      <div class="nasa-certificate-sheet">
+        <div class="cert-header-seal">🦅 ⭐ 🚀</div>
+        <div class="cert-agency-title">National Aeronautics and Space Administration</div>
+        <div class="cert-sub-heading">Official Space Flight Certificate of Completion</div>
+        <p class="cert-body-text">
+          This document certifies that the spacecraft architecture designated as:
+        </p>
+        <div id="cert-sc-name" class="cert-recipient-name">SENTINEL-ALPHA</div>
+        <p class="cert-body-text">
+          has successfully fulfilled orbital flight objectives for the <strong id="cert-mission-type">Earth Climate Sentinel</strong> exploration scenario, attaining an overall engineering flight rating of:
+        </p>
+        <div id="cert-grade" style="font-size: 1.25rem; font-weight: 800; color: #0b3d91; margin-bottom: 12px;">GRADE S — FULL MISSION SUCCESS</div>
+        <div class="cert-signatures">
+          <div class="cert-sig-line">
+            <span id="cert-team-lead">Flight Director</span><br>
+            <strong>Mission Operations Directorate</strong>
+          </div>
+          <div class="cert-sig-line">
+            <span id="cert-date">Date</span><br>
+            <strong>NASA Space Apps 2026</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
+        <button id="btn-print-certificate" class="btn-header" style="background: #0b3d91; color: #fff; border-color: #0b3d91; padding: 10px 18px;">
+          🖨️ Print / Save Official Certificate
+        </button>
+        <button onclick="document.getElementById('debrief-modal').classList.remove('visible'); window.SpaceMissionGame.app.switchTab('tab-spacecraft');" class="btn-header" style="background: rgba(255,255,255,0.1); padding: 10px 18px;">
+          🔄 Design Another Mission
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. APP FOOTER -->
+  <footer class="app-footer">
+    <div>
+      <strong>NASA Space Apps Challenge 2026</strong> — Challenge: <em>Space Mission Design Game</em>
+    </div>
+    <div class="footer-links">
+      <span>Built for Students, Educators & Space Enthusiasts</span>
+      <a href="https://www.spaceappschallenge.org" target="_blank" rel="noopener">NASA Space Apps</a>
+    </div>
+  </footer>
+
+  <!-- Script Modules in Dependency Order -->
+  <script src="scenarios.js"></script>
+  <script src="components.js"></script>
+  <script src="anomalies.js"></script>
+  <script src="educational.js"></script>
+  <script src="orbit-physics.js"></script>
+  <script src="mission-model.js"></script>
+  <script src="audio.js"></script>
+  <script src="simulator.js"></script>
+  <script src="orbit-renderer.js"></script>
+  <script src="spacecraft-renderer.js"></script>
+  <script src="charts.js"></script>
+  <script src="team-manager.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
